@@ -21,6 +21,6 @@ Those tests will provide you feedback about the validity of your results.
 
 ### Using LabTS to submit your coursework
 
-To submit to CATe, you **have to** go to [LabTS](https://teaching.doc.ic.ac.uk/labts), and click on the button `Submit to CATe` that is associated to the commit that contains the code you wish to submit.
+To submit to Scientia, you **have to** go to [LabTS](https://teaching.doc.ic.ac.uk/labts), and click on the button `Submit this Commit` that is associated to the commit that contains the code you wish to submit.
 
 If you have any question or comment, feel free to ask on Piazza, or during the tutorials ;)
