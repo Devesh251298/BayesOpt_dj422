@@ -372,13 +372,15 @@ class GaussianProcess(object):
         :return: the computed log predictive density on the test set.
         """
 
+        ## compute new kernel matrix=
         evaluations_test = evaluations_test.reshape((-1, 1))
         mean, std = self.get_gp_mean_std(data_points_test)
         mean = mean.reshape((-1, 1))
         std = std.reshape((-1, 1))
         return float(np.mean(
-            -0.5 * np.log(2 * np.pi) - np.log(std) - np.power(mean - evaluations_test, 2) / (2 * np.power(std, 2))
+            scipy.stats.norm.logpdf(evaluations_test, mean, std)
         ).item())
+
 
     def plot_with_samples(self,
                           number_samples: int,
