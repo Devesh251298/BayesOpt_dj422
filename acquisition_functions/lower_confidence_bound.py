@@ -37,4 +37,5 @@ class LowerConfidenceBound(AcquisitionFunction):
         """
 
         mean_data_points, std_data_points = gaussian_process(data_points.reshape((-1, gaussian_process.array_dataset.shape[1])))
+        print((-1 * (mean_data_points - np.sqrt(self.confidence_rate) * std_data_points)).shape)
         return -1 * (mean_data_points - np.sqrt(self.confidence_rate) * std_data_points)

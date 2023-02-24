@@ -25,7 +25,7 @@ class GaussianProcess(object):
         """
 
         self._kernel = kernel
-
+        self.variance = []
         if array_dataset is not None:  # If dataset provided, we initialise our gaussian process with it.
             self.initialise_dataset(array_dataset, array_objective_function_values)
         else:  # If dataset not provided, we initialise with an empty dataset.
@@ -178,7 +178,21 @@ class GaussianProcess(object):
         - log_length_scale
         - log_noise_scale
         """
-        # TODO
+        self.set_kernel_parameters(log_amplitude, log_length_scale, log_noise_scale)
+
+        K = self._covariance_matrix
+        K_noise = K + self._kernel.noise_scale_squared * np.identity(K.shape[0])
+        K_noise_inv = np.linalg.inv(K_noise)
+        y = self._array_objective_function_values
+
+        alpha = K_noise_inv.dot(y)
+
+        length_scale = self._kernel.length_scale
+        sigma2_n = self._kernel.noise_scale_squared
+
+        log_marginal_likelihood = -0.5 * y.T.dot(alpha)  - 0.5 * np.log(np.linalg.det(K_noise))  - 0.5 * np.size(y) * np.log(2 * np.pi)
+        
+        return -log_marginal_likelihood
 
     def get_gradient_negative_log_marginal_likelihood(self,
                                                       log_amplitude: float,
@@ -265,7 +279,10 @@ class GaussianProcess(object):
         - mean = array of respective means predicted at the gaussian process for each point
         - covariance matrix = k(new_data_points, new_data_points) where k refers to the kernel function.
         """
-        # TODO
+        mean, std = self.get_gp_mean_std(new_data_points)
+        mean = mean.reshape(-1)
+        return np.random.multivariate_normal(mean, self.variance)
+
 
     def get_gp_mean_std(self,
                         new_data_points: np.ndarray
@@ -282,7 +299,41 @@ class GaussianProcess(object):
         - a column numpy array of size n x 1 with the estimation of the predicted standard deviation of the gaussian process for
         all the points in data_points
         """
-        # TODO
+        
+
+        if len(self._array_dataset) == 0:
+            K = np.zeros((new_data_points.shape[0], new_data_points.shape[0]))
+        else:
+            K = self._covariance_matrix
+
+        sigma_sq = self._kernel.noise_scale_squared
+        K_noise = K + sigma_sq * np.identity(K.shape[0])
+
+        K_noise_inv = np.linalg.inv(K_noise)
+
+        if len(self._array_dataset) == 0:
+            y = np.zeros((new_data_points.shape[0], 1))
+            K_noise_inv = np.linalg.inv(sigma_sq * np.identity(K.shape[0]))
+        else:
+            y = self._array_objective_function_values
+        alpha = K_noise_inv.dot(y)
+
+        # if len(self._array_dataset) == 0:
+        #     alpha = np.empty((new_data_points.shape[0], 1))
+
+        if len(self._array_dataset) == 0:
+            K_star = np.zeros((new_data_points.shape[0], new_data_points.shape[0]))
+        else:
+            K_star = self._kernel(new_data_points, self._array_dataset)
+       
+        mean = K_star.dot(alpha)
+        
+        K_star_star = self._kernel(new_data_points, new_data_points)
+        self.variance = K_star_star - K_star.dot(K_noise_inv).dot(K_star.T)
+        std = np.sqrt(np.diag(K_star_star - K_star.dot(K_noise_inv).dot(K_star.T)))
+
+        return mean, std
+
 
     def get_mse(self,
                 data_points_test: np.ndarray,
@@ -318,7 +369,13 @@ class GaussianProcess(object):
         :return: the computed log predictive density on the test set.
         """
 
-        # TODO
+        evaluations_test = evaluations_test.reshape((-1, 1))
+        mean, std = self.get_gp_mean_std(data_points_test)
+        mean = mean.reshape((-1, 1))
+
+        return np.mean(
+            scipy.stats.norm.logpdf(evaluations_test, mean, std)
+        ).item()
 
     def plot_with_samples(self,
                           number_samples: int,
@@ -334,6 +391,7 @@ class GaussianProcess(object):
         self.plot(objective_function, show=False)
 
         for _ in range(number_samples):
+
             res = self.get_sample(xx.reshape((-1, 1)))
             plt.plot(xx, res, alpha=0.6)
 
@@ -345,6 +403,7 @@ class GaussianProcess(object):
              show=True):
         boundaries = objective_function.boundaries
         number_dimensions = len(boundaries)
+
         if number_dimensions == 1:
             xlim, = boundaries
             x_gt = np.linspace(xlim[0], xlim[1], 100)

@@ -11,4 +11,22 @@ class MaternKernel(Kernel):
         :return: numpy array of size n_1 x n_2 for which the value at position (i, j) corresponds to the value of
         k(x_i, y_j), where k represents the kernel used.
         """
-        # TODO
+    
+        ## TODO: Implement the Matern kernel
+        ## Hint: You can use the Gaussian kernel as a template
+
+        amplitude = np.exp(self.log_amplitude)
+        length_scale = np.exp(self.log_length_scale)
+        noise_scale = np.exp(self.log_noise_scale)
+
+        n_1, m = X.shape
+        n_2, m = Y.shape
+
+        cov = np.zeros((n_1, n_2))
+
+        for i in range(len(X)):
+            for j in range(len(Y)):
+                dist = np.linalg.norm(X[i]-Y[j])
+                cov[i][j] = amplitude ** 2 * (1 + np.sqrt(3)*dist/length_scale) * np.exp(-np.sqrt(3)*dist/length_scale)
+
+        return cov

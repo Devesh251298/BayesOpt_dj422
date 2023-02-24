@@ -24,7 +24,27 @@ class GaussianKernel(Kernel):
         :return: numpy array of size n_1 x n_2 for which the value at position (i, j) corresponds to the value of
         k(x_i, y_j), where k represents the kernel used.
         """
-        # TODO
+        amplitude = np.exp(self.log_amplitude)
+        length_scale = np.exp(self.log_length_scale)
+        noise_scale = np.exp(self.log_noise_scale)
+
+        print(X.shape, Y.shape)
+
+        n_1, m = X.shape
+        n_2, m = Y.shape
+
+        # Compute the squared distance matrix
+        X_sq = np.sum(X ** 2, axis=1).reshape(n_1, 1)
+        Y_sq = np.sum(Y ** 2, axis=1).reshape(1, n_2)
+        dist_sq = X_sq + Y_sq - 2 * np.dot(X, Y.T)
+
+        # Compute the covariance matrix
+        cov = amplitude ** 2 * np.exp(-0.5 * dist_sq / length_scale ** 2)
+
+        # Add the noise
+        # cov += noise_scale ** 2 * np.eye(n_1, n_2)
+
+        return cov
 
     def __call__(self,
                  X: np.ndarray,
