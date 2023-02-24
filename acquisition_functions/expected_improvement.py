@@ -22,15 +22,12 @@ class ExpectedImprovement(AcquisitionFunction):
         """
 
         mean, std = GaussianProcess.get_gp_mean_std(gaussian_process, data_points)
-        mean = mean.reshape(-1,1)
-        std = std.reshape(-1, 1)
-        ## calculate the best value
+        mean, std = mean.reshape(-1, 1), std.reshape(-1, 1)
         best_value = np.min(gaussian_process._array_objective_function_values)
         
-        # if the variance is 0, we set the improvement to 0
-        gamma = (best_value-mean)/std
-
-        return gamma*std*norm.cdf(gamma) + std*norm.pdf(gamma)
+        improvement = (mean - best_value) * norm.cdf((mean - best_value) / std) + std * norm.pdf((mean - best_value) / std)
+    
+        return -improvement
 
     
 
