@@ -376,9 +376,9 @@ class GaussianProcess(object):
         mean, std = self.get_gp_mean_std(data_points_test)
         mean = mean.reshape((-1, 1))
 
-        return np.mean(
+        return float(np.mean(
             scipy.stats.norm.logpdf(evaluations_test, mean, std)
-        ).item()
+        ).item())
 
     def plot_with_samples(self,
                           number_samples: int,
