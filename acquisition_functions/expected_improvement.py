@@ -25,9 +25,9 @@ class ExpectedImprovement(AcquisitionFunction):
         mean, std = mean.reshape(-1, 1), std.reshape(-1, 1)
         best_value = np.min(gaussian_process._array_objective_function_values)
         
-        improvement = (mean - best_value) * norm.cdf((mean - best_value) / std) + std * norm.pdf((mean - best_value) / std)
+        improvement = (best_value-mean) * norm.cdf((best_value-mean) / std) + std * norm.pdf((best_value-mean) / std)
     
-        return -improvement
+        return improvement
 
     
 
