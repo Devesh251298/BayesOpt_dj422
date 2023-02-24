@@ -183,6 +183,7 @@ class GaussianProcess(object):
         K = self._covariance_matrix
         K_noise = K + self._kernel.noise_scale_squared * np.identity(K.shape[0])
         K_noise_inv = np.linalg.inv(K_noise)
+
         y = self._array_objective_function_values
 
         alpha = K_noise_inv.dot(y)
@@ -190,9 +191,11 @@ class GaussianProcess(object):
         length_scale = self._kernel.length_scale
         sigma2_n = self._kernel.noise_scale_squared
 
-        log_marginal_likelihood = -0.5 * y.T.dot(alpha)  - 0.5 * np.log(np.linalg.det(K_noise))  - 0.5 * np.size(y) * np.log(2 * np.pi)
-        
-        return -log_marginal_likelihood
+        log_det_K_noise = np.log(np.linalg.det(K_noise))
+
+        log_marginal_likelihood = -0.5 * y.T.dot(alpha) - 0.5 * log_det_K_noise - 0.5 * np.size(y) * np.log(2 * np.pi)
+                    
+        return -float(log_marginal_likelihood)
 
     def get_gradient_negative_log_marginal_likelihood(self,
                                                       log_amplitude: float,

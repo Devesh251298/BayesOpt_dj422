@@ -28,8 +28,6 @@ class GaussianKernel(Kernel):
         length_scale = np.exp(self.log_length_scale)
         noise_scale = np.exp(self.log_noise_scale)
 
-        print(X.shape, Y.shape)
-
         n_1, m = X.shape
         n_2, m = Y.shape
 
