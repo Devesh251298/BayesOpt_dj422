@@ -373,13 +373,18 @@ class GaussianProcess(object):
         """
 
         ## compute new kernel matrix=
-        evaluations_test = evaluations_test.reshape((-1, 1))
-        mean, std = self.get_gp_mean_std(data_points_test)
-        mean = mean.reshape((-1, 1))
-        std = std.reshape((-1, 1))
-        return float(np.sum(
-            scipy.stats.norm.logpdf(evaluations_test, mean, std)
-        ).item())
+        sigma_n = np.exp(self._kernel.log_noise_scale)**2
+
+        log_pred_density = 0
+        for i in range(data_points_test.shape[0]):
+            mean, _ = self.get_gp_mean_std(data_points_test[i].reshape(1,-1))
+            mean, var = mean.reshape(-1), self.variance.reshape(-1)
+
+            pred_var = var + sigma_n
+
+            log_pred_density += -0.5 * np.log(2 * np.pi * pred_var) - 0.5 * np.power(evaluations_test[i] - mean, 2) / pred_var
+
+        return log_pred_density.item()
 
 
     def plot_with_samples(self,
